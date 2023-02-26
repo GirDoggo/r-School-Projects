@@ -2,7 +2,8 @@
 #' code that my teacher wrote. Everything else is my own code.
 #' This code was not written for a homework assignment.
 #' It was written due to a personal communication with my teacher
-#' as an optional assignment.
+#' as an optional assignment. The densePeakFunction was the product of
+#' this and is included in a separate part of this repository.
 
 # The following removes everything but tVC
 ## `rm` removes and `ls` lists the objects currently loaded
