@@ -1,0 +1,124 @@
+#Import the data without factors
+## You will need to costumize this for your system
+setwd("D:/peter/R files")
+varDf.path<-"phalliiFNP_Variants_scrambledSubset.csv"
+varDf <- read.csv(varDf.path,stringsAsFactors = F)
+##Visualize data
+dim(varDf)
+## [1] 8119   28
+unique(varDf$type) ## This should not be a factor
+## [1] "DEL"   "INS"   "INV"   "DUP"   "SNP"   "INDEL"
+# A custom function that downloads and reads the RDS data
+nolansReadRDS <- function(url,tempFile="deleteMe.zip"){
+    download.file(url,destfile = tempFile)
+    rds <- readRDS(unzip(tempFile))
+    return(rds)
+}
+#A list object to store and organize the URLs
+urlList<-list()
+urlList$varDf
+
+
+un <- unique(varDf$sample)
+# Code used for testing 
+# length(un)
+# varDf
+
+ungn <- unique(na.omit(varDf$gene))
+ungn_clean <- ungn[ungn != ""]
+
+# Code used to check that NA and
+# empty strings were removed
+ungn_clean[ungn_clean=='']
+length(ungn_clean)
+
+un_gene = table(ungn_clean)
+length(un_gene)
+
+# Question 3 asks which of the genes has the most mutations
+removed_data <- varDf$gene[is.na(varDf$gene) == FALSE & varDf$gene != ""]
+sort(table(removed_data))
+tail(sort(table(removed_data)))
+
+# Other tests I used to see the genes with most mutations
+# names(which.max(table(removed_data)))
+# removed_data[table(removed_data) == 4]
+# removed_data[which.max(table(removed_data))]
+# table(removed_data)[74]
+
+# Initiate cleaning of varDf by copying it into a new variable
+varDf_clean = varDf
+# remove both the -> symbols and all numbers before it to create the new vector
+# of end positions
+varDf_clean$endPos = as.numeric(gsub(pattern = ".*->", replacement = "", x = varDf_clean$pos))
+# remove both the -> symbols and all numbers after it to create the new vector
+# of beginning positions
+varDf_clean$begPos = as.numeric(gsub(pattern = "->.*", replacement = "", x = varDf_clean$pos))
+
+# order the data frame by ordering it by the chromosome, beginning position of 
+# read and end position of read
+varDf_clean2 = varDf_clean[(order(varDf_clean$chrom, varDf_clean$begPos, varDf_clean$endPos)),]
+# code used to check that the code above works
+varDf_clean[(order(varDf_clean$chrom, varDf_clean$begPos, varDf_clean$endPos)),]
+View(varDf_clean2)
+
+#Calculate the dimensions
+mainText <- paste0(dim(varDf_clean2),
+                   c(" rows"," columns"),
+                   collapse = " & ")
+#Visualize the order of the beginning position
+plot(x = 1:nrow(varDf_clean2),
+     y = varDf_clean2$begPos/1000000,
+     main = mainText,ylab = "Beginning position (Mbp)",
+     col = as.factor(varDf_clean2$chrom))
+#Visualize if the end positions were sorted correctly 
+## when beginning position is the same
+## diff() calculates the difference between adjacent values
+diffOfEnds <- diff(varDf_clean2$endPos)
+diffOfBegs <- diff(varDf_clean2$begPos)
+plot(diffOfEnds[diffOfBegs==0])
+
+
+# clean the data frame further by keeping only rows with chromosomes rather than
+# scaffold in the chromosome column
+varDf_clean3 = varDf_clean2[grep(pattern='Chr', x=varDf_clean2$chrom),]
+
+# grep is used to create a indices vector for finding which rows of 
+# varDf_clean3 contain genes that begin with the string "Pahal", and this
+# is used to construct varDf_clean4 from varDf_clean3
+varDf_clean4 = varDf_clean3[grep(pattern='Pahal', x = varDf_clean3$gene),]
+
+#Visualize the variant distribution
+mainText <- paste0(dim(varDf_clean4),
+                   c(" rows"," columns"),
+                   collapse = " & ")
+plot(x = 1:nrow(varDf_clean4),
+     y = varDf_clean4$begPos/1000000,
+     main = mainText,ylab = "Beginning position (Mbp)",
+     col = as.factor(varDf_clean4$chrom))
+
+
+varDf_clean5 = varDf_clean4
+# replace periods with underscores in the sample column
+varDf_clean5$sample = gsub(pattern='\\.', replacement='_', x=varDf_clean4$sample)
+
+# replace occurrences of "Fil" with "FIL"
+varDf_clean5$sample = gsub(pattern='Fil', replacement='FIL', x=varDf_clean5$sample)
+View(varDf_clean5)
+
+# Creates a vector of all the sample ids without the string "FIL" at the start
+FIL_remove = gsub(pattern='FIL','',varDf_clean5$sample)
+# Uses the FIL_remove vector of sample ids without "FIL" to add the dosage 
+# column to the data frame while removing everything at and after the first 
+# underscore as a numeric vector
+varDf_clean5$dosage = as.numeric(sub(pattern='_.*','',FIL_remove))
+
+# Remove everything at and before the first underscore in the sample ids column
+und_remove = sub(pattern='.*?_', replacement='', x = varDf_clean5$sample)
+varDf_clean5$m1ID = as.numeric(sub(pattern='_.*', '', und_remove))
+
+# Check the work
+head(varDf_clean5$m1ID)
+## [1] 331 713 831 313 275 286
+tail(varDf_clean5$m1ID)
+## [1] 503 537 550 492 460 460
