@@ -1,0 +1,41 @@
+#' The set of random data generated for testing was written using 
+#' code that my teacher wrote. Everything else is my own code.
+#' This code was not written for a homework assignment.
+#' It was written due to a personal communication with my teacher
+#' as an optional assignment.
+
+# The following removes everything but tVC
+## `rm` removes and `ls` lists the objects currently loaded
+rm(list = ls())
+
+# Create randomized test data
+set.seed(11)
+testData <- c(
+  rnorm(n = 50000,mean = 10.5  ,sd = 5),
+  rnorm(n =  5000,mean = 10.5*2,sd = 5),
+  rnorm(n =  1000,mean = 10.5*3,sd = 5),
+  rnorm(n =  2500,mean = 10.5*4,sd = 5)
+)
+testData<-round(testData)
+testData[testData<3.5]<-NA
+hist(testData,100)
+
+# source in the densePeakFunction function
+source('C:/Users/peter/COMPUTATIONAL BIO/densePeakFunction.R')
+
+# generate a density curve using the test data
+test.dens <- density(testData,na.rm=T)
+plot(test.dens)
+
+# find the peaks of the curve
+test.peak <- densePeakFunction(testData)
+
+# plot the location of every peak
+abline(v = test.peak$x_2,col="red")
+
+# save the density curve and peaks into a png
+png(filename = 'dens_curve.png')
+plot(test.dens)
+abline(v = plateaus$x,col="red")
+dev.off()
+
