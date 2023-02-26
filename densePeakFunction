@@ -1,0 +1,45 @@
+# densePeakFunction finds the peaks of a density curve by using the derivatives
+# of the curve to find where it plateaus. It takes a vector of data as a
+# parameter.
+densePeakFunction <- function(data){
+  # create a density object in the dens variable using the data vector
+  dens = density(data, na.rm = T)
+  
+  # This for loop contains all the derivatives of the density curve as a vector
+  derivativeVec = c()
+  for (i in 1:(length(dens$y)-1)){
+    to_subtractY = dens$y[i]
+    next_valueY = dens$y[i+1]
+    to_subtractX = dens$x[i]
+    next_valueX = dens$x[i+1]
+    
+    derivativeVec = c(derivativeVec, 
+                      (next_valueY-to_subtractY)/(next_valueX-to_subtractX))
+  }
+  
+  # add one NA value to the derivative vector to make it the same length as the 
+  # number of x values or densities of the density curve in order to put it in
+  # the same data frame.
+  derivativeVec = c(derivativeVec, NA)
+  derivativeDf = data.frame(dens$x, dens$y, derivativeVec)
+  
+  # This for loop finds all the plateaus in the density curve by finding the
+  # pairs of x at which the derivatives go from positive to negative
+  plateau_indices = c()
+  for (i in 1:(length(dens$y)-1)){
+    compare1 = derivativeVec[i]
+    compare2 = derivativeVec[i+1]
+    if (compare1>0 & compare2<0){
+      plateau_indices = c(plateau_indices, i)
+    }
+  }
+  
+  # The ranges within which each plateau is are added to a data frame
+  plateaus = data.frame(x=dens$x[plateau_indices], 
+                        y=dens$y[plateau_indices],
+                        x_2 = dens$x[plateau_indices+1],
+                        y_2 = dens$y[plateau_indices+1])
+  
+  # Return the plateaus data frame, which is where the peaks are
+  return(plateaus)
+}
