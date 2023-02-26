@@ -1,0 +1,19 @@
+pxz58_Q7 <- function(og){
+    og_calc = og[is.na(og)==FALSE]
+    # subtract the median from every non-NA data point in the original vector
+    minus_med = og-median(og_calc)
+    # subtract the mean from every non-NA data point in the original vector
+    minus_mean = og-mean(og_calc)
+    # Get the mode by reading the name of the column of the max value in the
+    # table of frequencies of the data set
+    mod = as.numeric(names(table(og)[(table(og) == max(table(og_calc)))]))
+    # subtract the mode from every non-NA data point in the original vector
+    minus_mod = og-mod
+    # the data frame returned is created from the original vector and 
+    # the three calculated vectors with columns original, mean,
+    # median and mode as four columns.
+    returned = data.frame(original = og, mean = minus_mean, 
+                         median =minus_med, mode = minus_mod)
+    return(returned)
+}
+
